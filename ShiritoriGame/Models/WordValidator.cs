@@ -56,26 +56,26 @@ namespace ShiritoriGame.Models
             return result.ToString();
         }
 
-        public static (bool isValid, string errorMessage) ValidateWord(string word, string previousWord, string[] usedWords)
+        public static (bool isValid, string errorMessage, bool isGameEnding) ValidateWord(string word, string previousWord, string[] usedWords)
         {
             if (string.IsNullOrWhiteSpace(word))
             {
-                return (false, "単語を入力してください。"); // Please enter a word
+                return (false, "単語を入力してください。", false); // Please enter a word
             }
 
             if (!HiraganaRegex.IsMatch(word))
             {
-                return (false, "ひらがなだけを使ってください。"); // Please use hiragana only
+                return (false, "ひらがなだけを使ってください。", false); // Please use hiragana only
             }
 
             if (word.EndsWith("ん"))
             {
-                return (false, "'ん'で終わる言葉は使えません。"); // Words ending with 'ん' are not allowed
+                return (false, "'ん'で終わる言葉を使いました。あなたの負けです。", true); // You used a word ending with 'ん'. You lose.
             }
 
             if (usedWords != null && usedWords.Contains(word))
             {
-                return (false, "その言葉はすでに使われています。"); // That word has already been used
+                return (false, "その言葉はすでに使われています。", false); // That word has already been used
             }
 
             if (!string.IsNullOrEmpty(previousWord))
@@ -88,11 +88,11 @@ namespace ShiritoriGame.Models
                 
                 if (normalizedFirstChar != normalizedLastChar)
                 {
-                    return (false, $"言葉は「{lastChar}」で始まる必要があります。");
+                    return (false, $"言葉は「{lastChar}」で始まる必要があります。", false);
                 }
             }
 
-            return (true, string.Empty);
+            return (true, string.Empty, false);
         }
     }
 }

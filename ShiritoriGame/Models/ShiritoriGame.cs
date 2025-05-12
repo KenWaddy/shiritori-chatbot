@@ -41,13 +41,18 @@ namespace ShiritoriGame.Models
                 return "単語を入力してください。"; // Please enter a word
             }
 
-            var (isValid, errorMessage) = WordValidator.ValidateWord(
+            var (isValid, errorMessage, isGameEnding) = WordValidator.ValidateWord(
                 word, 
                 LastWord, 
                 _usedWords.ToArray());
 
             if (!isValid)
             {
+                if (isGameEnding)
+                {
+                    IsGameOver = true;
+                    Winner = "ボット"; // Bot
+                }
                 return errorMessage;
             }
 
