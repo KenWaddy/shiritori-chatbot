@@ -60,6 +60,42 @@ namespace ShiritoriGame.Models
         private string ProcessBotTurn()
         {
             char lastChar = LastWord[LastWord.Length - 1];
+            string normalizedLastChar = WordValidator.NormalizeKana(lastChar.ToString());
+            
+            if (TryFindBotWord(lastChar, out string botWord))
+            {
+                _usedWords.Add(botWord);
+                LastWord = botWord;
+                return $"ボット: {botWord}";
+            }
+            
+            foreach (var kvp in _botWords)
+            {
+                string normalizedKey = WordValidator.NormalizeKana(kvp.Key.ToString());
+                if (normalizedKey == normalizedLastChar)
+                {
+                    var validWords = kvp.Value
+                        .Where(w => !_usedWords.Contains(w) && !w.EndsWith("ん"))
+                        .ToList();
+                        
+                    if (validWords.Count > 0)
+                    {
+                        botWord = validWords[_random.Next(validWords.Count)];
+                        _usedWords.Add(botWord);
+                        LastWord = botWord;
+                        return $"ボット: {botWord}";
+                    }
+                }
+            }
+
+            IsGameOver = true;
+            Winner = "プレイヤー"; // Player
+            return "ボットは言葉が思いつきません。あなたの勝ちです！"; // Bot can't think of a word. You win!
+        }
+        
+        private bool TryFindBotWord(char lastChar, out string botWord)
+        {
+            botWord = string.Empty;
             
             if (_botWords.TryGetValue(lastChar, out List<string>? availableWords) && availableWords != null)
             {
@@ -69,17 +105,12 @@ namespace ShiritoriGame.Models
 
                 if (validWords.Count > 0)
                 {
-                    string botWord = validWords[_random.Next(validWords.Count)];
-                    _usedWords.Add(botWord);
-                    LastWord = botWord;
-                    
-                    return $"ボット: {botWord}";
+                    botWord = validWords[_random.Next(validWords.Count)];
+                    return true;
                 }
             }
-
-            IsGameOver = true;
-            Winner = "プレイヤー"; // Player
-            return "ボットは言葉が思いつきません。あなたの勝ちです！"; // Bot can't think of a word. You win!
+            
+            return false;
         }
 
         private void InitializeBotWords()
